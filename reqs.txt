@@ -1,0 +1,10 @@
+openai
+vosk
+pyaudio
+pyttsx3
+SimConnect
+langchain-openai
+langchain-community
+sentence-transformers
+langchain-huggingface
+faiss-cpu
