@@ -8,3 +8,5 @@ langchain-community
 sentence-transformers
 langchain-huggingface
 faiss-cpu
+ollama
+langchain-ollama
