@@ -8,9 +8,9 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.document_loaders import TextLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 
-from speech import SpeechToText
+from lib.modules.speech import SpeechToText
 
 
 # Step 1: Load All Documents from a Directory
@@ -35,8 +35,10 @@ vector_store = FAISS.from_documents(documents, embedding_model)
 retriever = vector_store.as_retriever(search_kwargs={"k": 3})  # Adjust k as needed
 
 # Step 4: Configure History-Aware Retriever
-llm = ChatOpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
+llm = ChatOllama(
+    model="llama3.3",
+    temperature=0,
+    # other params...
             )
 contextualize_q_system_prompt = (
     "Given a chat history and the latest user question "
