@@ -36,8 +36,13 @@ def generate_retriever(
     embedding_model = HuggingFaceEmbeddings(model_name=model)
     vector_store = FAISS.from_documents(documents, embedding_model)
 
+    # # Add other content in the vector store if needed
+    # other_documents = load_documents_from_directory("other_docs")
+    # other_vector_store = FAISS.from_documents(other_documents, embedding_model)
+    # vector_store.merge_from(other_vector_store)
+
     # Step 3: Define Retriever
-    retriever = vector_store.as_retriever(search_kwargs={"k": 3})  # Adjust k as needed
+    retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
     # Step 4: Configure History-Aware Retriever
     contextualize_q_system_prompt = (
