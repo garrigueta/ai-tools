@@ -10,7 +10,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.chat_models import ChatOllama
 
-from lib.modules.speech import SpeechToText
+# from lib.modules.speech import SpeechToText
 
 
 # Step 1: Load All Documents from a Directory
@@ -24,7 +24,7 @@ def load_documents_from_directory(directory_path):
     return documents
 
 
-directory_path = "docs"  # Replace with your directory path
+directory_path = os.path.expanduser("~/Documents/ebooks")  # Replace with your directory path
 documents = load_documents_from_directory(directory_path)
 
 # Step 2: Create Embeddings and Vector Store
@@ -58,6 +58,7 @@ history_aware_retriever = create_history_aware_retriever(
     llm, retriever, contextualize_q_prompt
 )
 
+
 # Step 5: Define Question Answering Chain
 qa_system_prompt = (
     "You are an assistant for question-answering tasks. Use "
@@ -86,7 +87,7 @@ chat_history = []  # Initialize chat history
 query = "What is discussed in the documents?"
 response = rag_chain.invoke({"input": query, "chat_history": chat_history})
 
-speech = SpeechToText()
-speech.change_voice('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
-speech.speech(response['answer'])
+#speech = SpeechToText()
+# speech.change_voice('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
+#speech.speech(response['answer'])
 print(response['answer'])

@@ -172,3 +172,4 @@ cython_debug/
 # project related files
 vosk/*
 !vosk/info.txt
+embeddings.db

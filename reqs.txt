@@ -3,6 +3,7 @@ vosk
 pyaudio
 pyttsx3
 SimConnect
+langchain
 langchain-openai
 langchain-community
 sentence-transformers
