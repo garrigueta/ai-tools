@@ -11,3 +11,4 @@ langchain-huggingface
 faiss-cpu
 ollama
 langchain-ollama
+EbookLib
