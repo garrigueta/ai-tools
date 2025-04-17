@@ -10,6 +10,7 @@ import sqlite3
 import requests
 import numpy as np
 import faiss  # For vector search
+import os
 
 # SQLite setup
 db_path = "embeddings.db"
@@ -30,9 +31,11 @@ conn.commit()
 
 # Custom embedding class for Ollama
 class OllamaEmbeddings:
-    def __init__(self, model="gemma3", host="http://localhost:11434"):
-        self.model = model
-        self.host = host
+    def __init__(self, model=None, host=None):
+        self.model = model or os.getenv('OLLAMA_MODEL', 'gemma3:27b')
+        host = host or os.getenv('OLLAMA_HOST', 'localhost')
+        port = os.getenv('OLLAMA_PORT', '11434')
+        self.host = f"http://{host}:{port}"
 
     def embed_documents(self, texts):
         embeddings = []
@@ -57,7 +60,7 @@ texts = [
 ]
 
 # Use Ollama for embeddings
-embedding_model = OllamaEmbeddings(model="gemma3")
+embedding_model = OllamaEmbeddings()  # Will use environment variables
 embeddings = embedding_model.embed_documents(texts)
 
 # Insert documents into SQLite

@@ -1,0 +1,124 @@
+# Define the main script path in the same directory as this file
+MAIN_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/main.py"
+
+alias mop="$MAIN_SCRIPT"
+
+# Check if Ollama is running and print a warning if not
+function check_ollama {
+  if ! curl -s "$OLLAMA_HOST:$OLLAMA_PORT/api/tags" > /dev/null 2>&1; then
+    echo "⚠️  Warning: Ollama server appears to be offline at $OLLAMA_HOST:$OLLAMA_PORT"
+    echo "    Please start Ollama or check your connection settings."
+    return 1
+  fi
+  return 0
+}
+
+# Check if the specified model is available
+function check_model {
+  if check_ollama; then
+    if ! curl -s "$OLLAMA_HOST:$OLLAMA_PORT/api/tags" | grep -q "\"$OLLAMA_MODEL\""; then
+      echo "⚠️  Warning: Model '$OLLAMA_MODEL' not found in available models."
+      echo "    Available models:"
+      curl -s "$OLLAMA_HOST:$OLLAMA_PORT/api/tags" | grep -o '"[^"]*"' | grep -v "models\|names" | sed 's/"//g' | sed 's/^/    - /'
+      return 1
+    fi
+  fi
+  return 0
+}
+
+# Enhanced error handler
+handle_error() {
+  local exit_code=$?
+  local failed_command="$BASH_COMMAND"
+
+  # Exclude commands using `mop` from error handling
+  if [[ "$failed_command" == *"mop"* ]]; then
+    return
+  fi
+
+  # Check if script exists and is executable
+  if [[ "$failed_command" == *"mop"* ]] && ! [ -x "$MAIN_SCRIPT" ]; then
+    echo "🤖 Error: The script is not found or not executable."
+    echo "    Please check your installation and make sure the script is executable."
+    return
+  fi
+
+  echo "🤖 Oops! \"$BASH_COMMAND\" failed with exit code $exit_code."
+  
+  # Skip shell function commands that can't be re-executed
+  if [[ "$failed_command" == "return "* ]]; then
+    echo "    Cannot analyze shell function commands."
+    echo "🤖 Please try again."
+    return
+  fi
+  
+  # Only run error analysis if Ollama is available
+  if check_ollama; then
+    # Don't re-execute the command, just use the exit code for analysis
+    echo "🤖 Analyzing error..."
+    
+    # Properly quote the command and error message to avoid parsing issues
+    QUOTED_COMMAND=$(printf "%q" "$BASH_COMMAND")
+    ERROR_MSG=$(printf "%q" "Command failed with exit code $exit_code")
+    
+    # Check if lolcat is available, if not just use regular output
+    if command -v lolcat > /dev/null 2>&1; then
+      "$MAIN_SCRIPT" error "$QUOTED_COMMAND" "$ERROR_MSG" | lolcat -a -d 2
+    else
+      "$MAIN_SCRIPT" error "$QUOTED_COMMAND" "$ERROR_MSG"
+    fi
+  else
+    echo "⚠️  Cannot analyze error: Ollama server is not available."
+  fi
+  
+  echo "🤖 Please try again."
+}
+
+# Add an initialization function to check everything on startup
+function init_ollama_tools {
+  echo "🤖 Initializing Ollama tools..."
+  check_ollama
+  check_model
+  
+  # Check if the script exists
+  if ! [ -f "$MAIN_SCRIPT" ]; then
+    echo "⚠️  Warning: Script not found at configured location."
+  elif ! [ -x "$MAIN_SCRIPT" ]; then
+    echo "⚠️  Warning: Script is not executable. Run: chmod +x on the script file."
+  else
+    echo "✅ Script found and executable"
+  fi
+  
+  echo "🤖 Ollama tools setup complete."
+}
+
+# Function to check which models are available and suggest alternatives if the current one isn't
+function check_models {
+  if check_ollama; then
+    echo "📊 Available Ollama models:"
+    curl -s "$OLLAMA_HOST:$OLLAMA_PORT/api/tags" | grep -o '"[^"]*"' | grep -v "models\|names" | sed 's/"//g' | sed 's/^/    - /'
+    
+    # Check if our model is actually available
+    if ! curl -s "$OLLAMA_HOST:$OLLAMA_PORT/api/tags" | grep -q "\"$OLLAMA_MODEL\""; then
+      echo "❓ Your current model ($OLLAMA_MODEL) is not in the list. Consider changing OLLAMA_MODEL."
+    else
+      echo "✅ Your current model ($OLLAMA_MODEL) is available."
+    fi
+  fi
+}
+
+# Function to test the Ollama setup with a simple prompt
+function test_ollama {
+  if check_ollama && check_model; then
+    echo "🔍 Testing Ollama with a simple prompt..."
+    mop prompt "Hello, are you working correctly? Please respond with a very brief message."
+    echo "✅ Test complete."
+  else
+    echo "❌ Cannot test: Ollama setup is incomplete or incorrect."
+  fi
+}
+
+trap 'handle_error $?' ERR
+
+# Run initialization (comment out if you don't want it to run on every source)
+# init_ollama_tools

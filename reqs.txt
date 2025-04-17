@@ -1,7 +1,6 @@
 openai
 vosk
 pyaudio
-pyttsx3
 SimConnect
 langchain
 langchain-openai
@@ -12,3 +11,4 @@ faiss-cpu
 ollama
 langchain-ollama
 EbookLib
+gtts
