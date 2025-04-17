@@ -1,7 +1,7 @@
-# Define the main script path in the same directory as this file
-MAIN_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/main.py"
+# Define the aitools command based on installed package
+AITOOLS_CMD="aitools"
 
-alias mop="$MAIN_SCRIPT"
+alias mop="$AITOOLS_CMD"
 
 # Check if Ollama is running and print a warning if not
 function check_ollama {
@@ -32,14 +32,14 @@ handle_error() {
   local failed_command="$BASH_COMMAND"
 
   # Exclude commands using `mop` from error handling
-  if [[ "$failed_command" == *"mop"* ]]; then
+  if [[ "$failed_command" == *"mop"* || "$failed_command" == *"$AITOOLS_CMD"* ]]; then
     return
   fi
 
-  # Check if script exists and is executable
-  if [[ "$failed_command" == *"mop"* ]] && ! [ -x "$MAIN_SCRIPT" ]; then
-    echo "🤖 Error: The script is not found or not executable."
-    echo "    Please check your installation and make sure the script is executable."
+  # Check if command is available
+  if ! command -v $AITOOLS_CMD >/dev/null 2>&1; then
+    echo "🤖 Error: The aitools command is not found."
+    echo "    Please check your installation and make sure the package is installed correctly."
     return
   fi
 
@@ -63,9 +63,9 @@ handle_error() {
     
     # Check if lolcat is available, if not just use regular output
     if command -v lolcat > /dev/null 2>&1; then
-      "$MAIN_SCRIPT" error "$QUOTED_COMMAND" "$ERROR_MSG" | lolcat -a -d 2
+      "$AITOOLS_CMD" error "$QUOTED_COMMAND" "$ERROR_MSG" | lolcat -a -d 2
     else
-      "$MAIN_SCRIPT" error "$QUOTED_COMMAND" "$ERROR_MSG"
+      "$AITOOLS_CMD" error "$QUOTED_COMMAND" "$ERROR_MSG"
     fi
   else
     echo "⚠️  Cannot analyze error: Ollama server is not available."
@@ -80,13 +80,12 @@ function init_ollama_tools {
   check_ollama
   check_model
   
-  # Check if the script exists
-  if ! [ -f "$MAIN_SCRIPT" ]; then
-    echo "⚠️  Warning: Script not found at configured location."
-  elif ! [ -x "$MAIN_SCRIPT" ]; then
-    echo "⚠️  Warning: Script is not executable. Run: chmod +x on the script file."
+  # Check if the aitools command exists
+  if ! command -v $AITOOLS_CMD >/dev/null 2>&1; then
+    echo "⚠️  Warning: aitools command not found."
+    echo "    Please check your installation or activate your poetry environment."
   else
-    echo "✅ Script found and executable"
+    echo "✅ aitools command found"
   fi
   
   echo "🤖 Ollama tools setup complete."
@@ -111,7 +110,7 @@ function check_models {
 function test_ollama {
   if check_ollama && check_model; then
     echo "🔍 Testing Ollama with a simple prompt..."
-    mop prompt "Hello, are you working correctly? Please respond with a very brief message."
+    $AITOOLS_CMD prompt "Hello, are you working correctly? Please respond with a very brief message."
     echo "✅ Test complete."
   else
     echo "❌ Cannot test: Ollama setup is incomplete or incorrect."

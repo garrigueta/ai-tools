@@ -1,55 +1,108 @@
 # ai-tools
 
-Flight Assistant for MSFS2024 with Ollama LLM integration.
+AI Tools with Ollama LLM integration for OS assistance.
 
 ## Overview
 
-ai-tools is an assistant that integrates with Microsoft Flight Simulator 2024 and uses Ollama's local large language models to provide real-time assistance, command generation, and error explanations during flight simulation.
+ai-tools is an assistant that uses Ollama's local large language models to provide real-time assistance, command generation, and error explanations directly from your terminal. It also includes optional integration with Microsoft Flight Simulator.
+
+## Installation
+
+### Option 1: Install using Poetry (recommended)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/garrigueta/ai-tools.git
+   cd ai-tools
+   ```
+
+2. Install with Poetry:
+   ```bash
+   # Install Poetry if you don't have it
+   curl -sSL https://install.python-poetry.org | python3 -
+   
+   # Install the package
+   poetry install
+   
+   # Activate the Poetry environment
+   poetry shell
+   ```
+
+3. Run the command-line tool:
+   ```bash
+   aitools prompt "Hello, how can you help me today?"
+   ```
+
+See [INSTALL.md](INSTALL.md) for more detailed installation options and troubleshooting.
+
+### Option 2: Install as a development package
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/garrigueta/ai-tools.git
+   cd ai-tools
+   ```
+
+2. Install in development mode:
+   ```bash
+   pip install -e .
+   ```
+
+3. Run the command-line tool:
+   ```bash
+   aitools prompt "Hello there"
+   ```
 
 ## Requirements
 
 - Python 3.10+
 - Ollama installed locally with a model configured
-- Required Python packages (see `reqs.txt`)
-- Audio playback support (for speech functionality)
-  - Linux: ffplay (recommended), mpg123, mpg321, or mplayer
+- Audio playback support for the `speak` command (Linux: ffplay, mpg123, mpg321, or mplayer)
 
-## Installation
+## Environment Setup
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/ai-tools.git
-   cd ai-tools
-   ```
+Set these environment variables to customize your experience:
+```bash
+export OLLAMA_HOST=localhost
+export OLLAMA_PORT=11434
+export OLLAMA_MODEL=gemma3:27b
+```
 
-2. Install the required packages:
-   ```bash
-   pip install -r reqs.txt
-   ```
+## Command-Line Integration
 
-3. Set up environment variables (optional):
-   ```bash
-   export OLLAMA_HOST=localhost
-   export OLLAMA_PORT=11434
-   export OLLAMA_MODEL=gemma3:27b
-   ```
+ai-tools includes a bash integration that automatically analyzes command errors. When sourced, the bash integration file sets up error handling that will:
 
-4. Enable the command-line error handler (optional):
-   ```bash
-   # Add this to your ~/.bashrc or ~/.zshrc
-   source /path/to/ai-tools/.bash_ollama_actions
-   ```
+1. Capture failed commands
+2. Send them to Ollama for analysis
+3. Display helpful explanations
+
+### Enable Shell Integration
+
+After installing the package, run the shell integration command:
+
+```bash
+aitools install-shell
+```
+
+This will install the shell integration script to your home directory and provide instructions on how to enable it in your shell config file.
+
+You can then add the source line to your `.bashrc` or `.zshrc` file:
+
+```bash
+# Add to your ~/.bashrc or ~/.zshrc
+source ~/.bash_aitools
+```
 
 ## Usage
 
-The main entry point for ai-tools is `main.py`. This script provides several commands:
+The ai-tools package provides several commands:
 
 ### Run a Natural Language Command
 
 Generates and executes a command based on natural language input:
 
 ```bash
-python main.py run "list all text files in the current directory"
+aitools run "list all text files in the current directory"
 ```
 
 ### Send a Direct Prompt to Ollama
@@ -57,7 +110,7 @@ python main.py run "list all text files in the current directory"
 Send a direct prompt to the Ollama model and get a response:
 
 ```bash
-python main.py prompt "Explain how autopilot works in an aircraft"
+aitools prompt "Explain how regex works in Python"
 ```
 
 ### Speak Response with Text-to-Speech
@@ -65,17 +118,15 @@ python main.py prompt "Explain how autopilot works in an aircraft"
 Send a prompt to Ollama and have the response read aloud using Google's Text-to-Speech:
 
 ```bash
-python main.py speak "Tell me about landing procedures for a Cessna 172"
+aitools speak "Tell me about the benefits of containerization"
 ```
-
-The spoken response uses Google's TTS engine for natural, human-like voice quality.
 
 ### Get Error Explanation
 
 Analyze and explain an error message from a command:
 
 ```bash
-python main.py error "npm install" "Error: ENOENT: no such file or directory, open 'package.json'"
+aitools error "npm install" "Error: ENOENT: no such file or directory, open 'package.json'"
 ```
 
 ### Load Documents into Knowledge Base
@@ -83,17 +134,23 @@ python main.py error "npm install" "Error: ENOENT: no such file or directory, op
 Load and vectorize documents from a directory to enhance AI knowledge:
 
 ```bash
-python main.py load "/path/to/documents"
+aitools load "/path/to/documents"
 ```
 
-The system will automatically store documents in a unified knowledge base that the AI can access when responding to prompts.
+### Install Shell Integration
+
+Install the shell integration script for terminal capabilities:
+
+```bash
+aitools install-shell
+```
 
 ### View Configuration
 
 Display the current Ollama configuration:
 
 ```bash
-python main.py info
+aitools info
 ```
 
 ### Help
@@ -101,18 +158,25 @@ python main.py info
 Get help on available commands:
 
 ```bash
-python main.py --help
+aitools --help
 ```
 
-## Command-Line Integration
+## Shell Integration Features
 
-ai-tools includes a bash integration that automatically analyzes command errors. When sourced, the `.bash_ollama_actions` file sets up error handling that will:
+The shell integration provides several useful features:
 
-1. Capture failed commands
-2. Send them to Ollama for analysis
-3. Display helpful explanations
+1. **Automatic Error Analysis**: When a command fails, the error is automatically analyzed by the AI
+2. **Ollama Connection Checking**: Functions to check if Ollama is running and properly configured
+3. **Model Availability**: Check if your configured model is available
+4. **Alias Support**: Use the `mop` alias as a shorthand for `aitools`
+5. **Testing Functions**: Easily test your Ollama setup with the `test_ollama` function
 
-This feature provides real-time assistance directly in your terminal.
+Available shell functions:
+- `check_ollama` - Check if Ollama is running
+- `check_model` - Check if the configured model is available
+- `check_models` - List all available Ollama models
+- `test_ollama` - Test Ollama with a simple prompt
+- `init_ollama_tools` - Initialize and check Ollama setup
 
 ## Speech Capabilities
 
@@ -130,19 +194,26 @@ Note: The speak command requires internet connectivity to access Google's TTS se
 
 ## Project Structure
 
+The project is organized as a Python package:
+
 ```
-main.py              # Main entry point script
-lib/                 # Core library code
-  mcp/               # Model Context Protocol components
-    actions.py       # Command execution and LLM interaction
-  modules/           # Simulator interface modules
-    msfs.py          # Microsoft Flight Simulator integration
-    speech.py        # Text-to-speech functionality
-  chat/              # Chat interface implementations
-  storage/           # Knowledge storage and document loading
-    docs.py          # Document vectorization and retrieval
-  backend/           # Backend services
-data/                # Configuration and data files
+src/                 # Source code directory
+  ai_tools/          # Main package
+    __init__.py      # Package initialization
+    __main__.py      # Entry point for running as a module
+    main.py          # Main application logic
+    backend/         # Backend services
+    chat/            # Chat interface implementations
+    config/          # Configuration management
+    mcp/             # Model Context Protocol components
+      actions.py     # Command execution and LLM interaction
+    modules/         # Utility modules
+      audio.py       # Audio processing functions
+      msfs.py        # Microsoft Flight Simulator integration
+      sim.py         # Simulation support functions
+      speech.py      # Text-to-speech functionality
+    storage/         # Knowledge storage and document loading
+      docs.py        # Document vectorization and retrieval
 ```
 
 ## Advanced Configuration

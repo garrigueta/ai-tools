@@ -12,12 +12,19 @@ class DatabaseConfig:
     """
     # Singleton instance
     _instance = None
+    _initialized = False
     
-    def __new__(cls):
+    def __new__(cls, force_init=False):
         if cls._instance is None:
             cls._instance = super(DatabaseConfig, cls).__new__(cls)
-            cls._instance._initialize()
+            cls._initialized = False
         return cls._instance
+    
+    def __init__(self, force_init=False):
+        """Initialize if not already initialized or if force_init is True"""
+        if not self._initialized or force_init:
+            self._initialize()
+            self._initialized = True
     
     def _initialize(self):
         """Initialize the database configuration from environment variables"""
@@ -80,6 +87,21 @@ class DatabaseConfig:
         self.verbose = os.getenv('VERBOSE_CONFIG', 'false').lower() == 'true'
         if self.verbose:
             self._log_config()
+    
+    # Special method to reset the singleton instance (used only in tests)
+    @classmethod
+    def _reset_instance(cls):
+        """Reset the singleton instance - for testing purposes only"""
+        cls._instance = None
+        cls._initialized = False
+        # Also reset the global instance by recreating it
+        global db_config
+        db_config = DatabaseConfig()
+    
+    def reinitialize(self):
+        """Reinitialize configuration from environment variables"""
+        self._initialize()
+        return self
     
     def _log_config(self):
         """Log the current configuration"""

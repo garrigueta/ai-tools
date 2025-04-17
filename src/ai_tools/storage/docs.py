@@ -13,7 +13,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 
 # Import the unified database configuration
-from lib.config.database import db_config
+from ai_tools.config.database import db_config
 
 CHAT_HISTORY = []
 RET_CHAIN = None

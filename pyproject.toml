@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "ai-tools"
+version = "0.1.0"
+description = "AI Tools with Ollama LLM integration for OS assistance"
+authors = ["garrigueta <ferran.garriga@gmail.com>"]
+readme = "README.md"
+packages = [{include = "ai_tools", from = "src"}]
+license = "MIT"
+repository = "https://github.com/garrigueta/ai-tools"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "*"
+vosk = "*"
+pyaudio = "*"
+SimConnect = "*"
+langchain = "*"
+langchain-openai = "*"
+langchain-community = "*"
+sentence-transformers = "*"
+langchain-huggingface = "*"
+faiss-cpu = "*"
+ollama = "*"
+langchain-ollama = "*"
+EbookLib = "*"
+gtts = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+aitools = "ai_tools.main:main"

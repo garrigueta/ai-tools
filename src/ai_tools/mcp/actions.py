@@ -216,7 +216,7 @@ def prompt_ollama_http(prompt: str, use_streaming=True, verbose=False):
 # Import database connector functions
 db_functions_available = False
 try:
-    from lib.mcp.db_connector import (
+    from ai_tools.mcp.db_connector import (
         mcp_vectorize_documents,
         mcp_query_documents,
         mcp_list_vector_databases,

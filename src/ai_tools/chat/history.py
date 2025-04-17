@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple, Optional, Any
 from pathlib import Path
 
 # Import the unified database configuration
-from lib.config.database import db_config
+from ai_tools.config.database import db_config
 
 # Use unified database configuration
 CHAT_HISTORY_PATH = db_config.history_db_path

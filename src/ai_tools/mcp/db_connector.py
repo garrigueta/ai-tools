@@ -5,11 +5,10 @@ import json
 from typing import Dict, List, Any, Optional
 
 # Add parent directory to path to import from lib
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from lib.storage.docs import search_documents, vectorize_documents, load_vector_db
-from lib.chat.history import ChatHistoryManager
-from lib.config.database import db_config
+from ai_tools.storage.docs import search_documents, vectorize_documents, load_vector_db
+from ai_tools.chat.history import ChatHistoryManager
+from ai_tools.config.database import db_config
 
 # Initialize a chat history manager
 chat_history_manager = ChatHistoryManager()

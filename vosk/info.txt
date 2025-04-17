@@ -1,3 +1,0 @@
-put in this folder the vosk model you want
-https://alphacephei.com/vosk/models
-those models are used by the speech class(speech.py - pyttsx3)

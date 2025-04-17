@@ -1,9 +1,9 @@
 """ A Python script to interact with MSFS and OpenAI GPT """
 # Custom Libraries
-#from lib.msfs import MSFSWrapper
-from lib.modules.speech import SpeechToText
-from lib.modules.audio import Audio
-from lib.modules.ai import AiWrapper
+#from ai_tools.msfs import MSFSWrapper
+from ai_tools.modules.speech import SpeechToText
+from ai_tools.modules.audio import Audio
+from ai_tools.modules.ai import AiWrapper
 
 
 class FlightSimAi:

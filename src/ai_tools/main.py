@@ -6,18 +6,18 @@ This script serves as the main entry point for the ai-tools application.
 import os
 import sys
 import argparse
-from lib.mcp.actions import (
+import logging
+from ai_tools.mcp.actions import (
     get_ollama_url,
     get_ollama_model,
     ask_llm_to_explain_error,
-    ask_llm_for_command,
-    run_command,
     run_ai_command,
     prompt_ollama_http,
     MCP_ACTIONS
 )
-from lib.config.database import db_config
-from lib.modules.speech import SpeechToText
+from ai_tools.config.database import db_config
+from ai_tools.modules.speech import SpeechToText
+from ai_tools.modules.shell_tools import install_shell_integration_command
 
 # Special handling for error analysis mode to completely suppress help output
 if len(sys.argv) > 1 and sys.argv[1] == "error":
@@ -123,8 +123,8 @@ def handle_speak_command(args):
     speech_engine.speech(output)
     print("Done speaking.")
 
-def main():
-    """Main entry point for the application"""
+def parse_args(argv=None):
+    """Parse and return command line arguments"""
     # Create parser with add_help=False to suppress automatic help/usage messages
     parser = argparse.ArgumentParser(
         description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
@@ -134,6 +134,12 @@ def main():
     # Add help option manually so it still shows up with -h/--help
     parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
                       help='show this help message and exit')
+    
+    # Global arguments
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
+    parser.add_argument('--config', help='Path to configuration file')
+    parser.add_argument('--mode', choices=['shell', 'api', 'web'], default='shell',
+                      help='Runtime mode: shell, api, or web (not implemented)')
     
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
     
@@ -164,10 +170,40 @@ def main():
     speak_parser.add_argument("prompt", nargs="+", help="Prompt to send to Ollama")
     speak_parser.add_argument("-v", "--verbose", action="store_true", help="Show additional connection information")
     
+    # Shell integration parser
+    shell_parser = subparsers.add_parser("install-shell", help="Install shell integration for terminal capabilities")
+    shell_parser.add_argument("--auto", action="store_true", help="Automatically add source command to shell config")
+    
     # Parse arguments
-    args = parser.parse_args()
+    return parser.parse_args(argv)
+
+def main(argv=None):
+    """Main entry point for the application"""
+    # Use the parse_args function to get command line arguments
+    args = parse_args(argv)
+    
+    if args.verbose:
+        # Configure logging with reasonable defaults
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        print("Starting AI Tools in verbose mode")
+    else:
+        # Setup minimal logging
+        logging.basicConfig(level=logging.INFO)
+    
+    if args.config:
+        print(f"Note: Config file '{args.config}' specified but config loading is not implemented")
     
     if not args.command:
+        if args.mode != 'shell':
+            print(f"Note: Mode '{args.mode}' is not implemented")
+        # Create parser object for print_help()
+        parser = argparse.ArgumentParser(
+            description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
+            add_help=False
+        )
         parser.print_help()
         return
     
@@ -183,7 +219,14 @@ def main():
         print_environment_info()
     elif args.command == "speak":
         handle_speak_command(args)
+    elif args.command == "install-shell":
+        install_shell_integration_command()
     else:
+        # Create parser object for print_help()
+        parser = argparse.ArgumentParser(
+            description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
+            add_help=False
+        )
         parser.print_help()
 
 if __name__ == "__main__":
