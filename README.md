@@ -84,14 +84,12 @@ After installing the package, run the shell integration command:
 aitools install-shell
 ```
 
-This will install the shell integration script to your home directory and provide instructions on how to enable it in your shell config file.
+This will:
+1. Install the shell integration script to your home directory as `~/.bash_aitools`
+2. Automatically add the required source line to your shell configuration file (`~/.bashrc` or `~/.zshrc`)
+3. Inform you when the integration is complete
 
-You can then add the source line to your `.bashrc` or `.zshrc` file:
-
-```bash
-# Add to your ~/.bashrc or ~/.zshrc
-source ~/.bash_aitools
-```
+You'll need to restart your terminal or run `source ~/.bashrc` (or equivalent) to activate the integration.
 
 ## Usage
 
@@ -218,13 +216,49 @@ src/                 # Source code directory
 
 ## Advanced Configuration
 
-The application uses environment variables for configuration:
+The application uses environment variables for configuration. Here's a comprehensive list of all available environment variables:
 
+### LLM Configuration
 - `OLLAMA_HOST`: The hostname where Ollama is running (default: `localhost`)
 - `OLLAMA_PORT`: The port Ollama is using (default: `11434`)
 - `OLLAMA_MODEL`: The Ollama model to use (default: `gemma3:27b`)
+- `LLM_API_KEY`: API key for authentication with external LLM services (default: empty)
 
-You can set these variables in your shell or modify them in the `.bash_ollama_actions` file.
+### Database Configuration
+- `OLLAMA_DB_ENABLED`: Enable external database storage (default: `false`)
+- `OLLAMA_DB_HOST`: Database host (default: `localhost`)
+- `OLLAMA_DB_PORT`: Database port (default: `5432`)
+- `OLLAMA_DB_USER`: Database username (default: `postgres`)
+- `OLLAMA_DB_PASSWORD`: Database password (default: empty)
+- `OLLAMA_DB_NAME`: Database name (default: `ai_tools_db`)
+
+### Vector Database Configuration
+- `VECTOR_DB_ENABLED`: Enable vector database (default: same as `OLLAMA_DB_ENABLED`)
+- `VECTOR_DB_HOST`: Vector database host (default: same as `OLLAMA_DB_HOST`)
+- `VECTOR_DB_PORT`: Vector database port (default: same as `OLLAMA_DB_PORT`)
+- `VECTOR_DB_USER`: Vector database username (default: same as `OLLAMA_DB_USER`)
+- `VECTOR_DB_PASSWORD`: Vector database password (default: same as `OLLAMA_DB_PASSWORD`)
+- `VECTOR_DB_NAME`: Vector database name (default: same as `OLLAMA_DB_NAME`)
+- `VECTOR_TABLE_PREFIX`: Prefix for vector database tables (default: `vector_`)
+- `VECTOR_DB_PATH`: Local path for vector database if using local storage (default: `data/vector_db` in project directory)
+
+### History Database Configuration
+- `HISTORY_DB_ENABLED`: Enable history database (default: same as `OLLAMA_DB_ENABLED`)
+- `HISTORY_DB_HOST`: History database host (default: same as `OLLAMA_DB_HOST`)
+- `HISTORY_DB_PORT`: History database port (default: same as `OLLAMA_DB_PORT`)
+- `HISTORY_DB_USER`: History database username (default: same as `OLLAMA_DB_USER`)
+- `HISTORY_DB_PASSWORD`: History database password (default: same as `OLLAMA_DB_PASSWORD`)
+- `HISTORY_DB_NAME`: History database name (default: same as `OLLAMA_DB_NAME`)
+- `HISTORY_TABLE_PREFIX`: Prefix for history database tables (default: `chat_`)
+- `HISTORY_DB_PATH`: Local path for history database if using local storage (default: `data/chat_history` in project directory)
+
+### Embedding Model Configuration
+- `DEFAULT_EMBEDDING_MODEL`: Model used for vector embeddings (default: `sentence-transformers/all-MiniLM-L6-v2`)
+
+### Debugging and Logging
+- `VERBOSE_CONFIG`: Print detailed configuration on startup (default: `false`)
+
+You can set these variables in your shell or create a `.env` file in your project directory.
 
 ## License
 

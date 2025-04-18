@@ -127,7 +127,7 @@ def parse_args(argv=None):
     """Parse and return command line arguments"""
     # Create parser with add_help=False to suppress automatic help/usage messages
     parser = argparse.ArgumentParser(
-        description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
+        description="ai-tools Ollama interface for AI-powered command generation.",
         add_help=False  # Suppress automatic help message on error
     )
     
@@ -201,7 +201,7 @@ def main(argv=None):
             print(f"Note: Mode '{args.mode}' is not implemented")
         # Create parser object for print_help()
         parser = argparse.ArgumentParser(
-            description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
+            description="ai-tools Ollama interface for AI-powered command generation.",
             add_help=False
         )
         parser.print_help()
@@ -224,7 +224,7 @@ def main(argv=None):
     else:
         # Create parser object for print_help()
         parser = argparse.ArgumentParser(
-            description="ai-tools Ollama interface for AI-powered flight assistance and command generation.",
+            description="ai-tools Ollama interface for AI-powered command generation.",
             add_help=False
         )
         parser.print_help()

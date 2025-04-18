@@ -81,12 +81,18 @@ export OLLAMA_MODEL=gemma3:27b
 
 ## Shell Integration
 
-To enable command-line error handling integration:
+To enable command-line error handling integration, use the built-in installation command:
 
 ```bash
-echo 'source /path/to/ai-tools/.bash_ollama_actions' >> ~/.bashrc
-source ~/.bashrc
+aitools install-shell
 ```
+
+This will:
+1. Install the shell integration script to your home directory as `~/.bash_aitools`
+2. Automatically add the required source line to your shell configuration file (`~/.bashrc` or `~/.zshrc`)
+3. Inform you when the integration is complete
+
+You'll need to restart your terminal or run `source ~/.bashrc` (or equivalent) to activate the integration.
 
 ## Troubleshooting
 

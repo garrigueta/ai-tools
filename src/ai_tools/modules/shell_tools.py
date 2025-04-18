@@ -28,12 +28,12 @@ def get_shell_config_file():
     home = get_user_home()
     shell = os.environ.get("SHELL", "")
     
-    # Check if user has a .bashrc file
-    if os.path.exists(os.path.join(home, ".bashrc")):
-        return os.path.join(home, ".bashrc")
-    # Check for zsh
-    elif "zsh" in shell and os.path.exists(os.path.join(home, ".zshrc")):
+    # First check if shell is zsh and .zshrc exists
+    if "zsh" in shell and os.path.exists(os.path.join(home, ".zshrc")):
         return os.path.join(home, ".zshrc")
+    # Then check for .bashrc
+    elif os.path.exists(os.path.join(home, ".bashrc")):
+        return os.path.join(home, ".bashrc")
     # Default to .bash_profile if exists
     elif os.path.exists(os.path.join(home, ".bash_profile")):
         return os.path.join(home, ".bash_profile")
@@ -116,14 +116,17 @@ def install_shell_integration(auto_source=False):
 def install_shell_integration_command():
     """Command-line function for installing the shell integration"""
     print("Installing AI-Tools shell integration...")
-    result = install_shell_integration(auto_source=False)
+    result = install_shell_integration(auto_source=True)
     
     if result["status"] == "success":
         print(f"✅ {result['message']}")
-        print(f"\nTo enable shell integration, add this line to your {result['config_file']}:")
-        print(f"  source {result['manual_source_cmd']}")
-        print("\nOr run this command:")
-        print(f"  echo 'source {result['manual_source_cmd']}' >> {result['config_file']}")
+        
+        if result.get("auto_source", False):
+            print(f"\nShell integration has been automatically added to your {result['config_file']}")
+            print(f"You may need to restart your terminal or run 'source {result['config_file']}' to activate it.")
+        else:
+            # This happens if the integration was already in the config file
+            print(f"\nShell integration was already configured in your {result['config_file']}")
     else:
         print(f"❌ {result['message']}")
         
