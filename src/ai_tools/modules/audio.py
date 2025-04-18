@@ -48,3 +48,26 @@ class Audio:
                     print("Recognized text: " + str(self.recognized_text),
                           flush=True)
                     break
+                    
+    def check_for_audio(self):
+        """ Non-blocking check for audio input
+        
+        Returns:
+            bool: True if new audio was recognized, False otherwise
+        """
+        # Check if the stream is ready
+        if not self.stream:
+            return False
+            
+        # Read audio data without blocking
+        self.data = self.stream.read(4096, exception_on_overflow=False)
+        
+        # Process the audio data
+        if self.rec.AcceptWaveform(self.data):
+            result = json.loads(self.rec.Result())
+            if "text" in result and result["text"]:
+                self.recognized_text = result["text"]
+                return True
+                
+        # Return False if no new recognized text
+        return False

@@ -135,6 +135,52 @@ Load and vectorize documents from a directory to enhance AI knowledge:
 aitools load "/path/to/documents"
 ```
 
+### Game Simulation Assistant
+
+Start an interactive voice assistant for game simulators:
+
+```bash
+# Start the Microsoft Flight Simulator assistant
+aitools sim msfs start
+
+# Start a test simulation with dummy data (default)
+aitools sim dummy start
+# or simply
+aitools sim start
+
+# Stop a running simulator assistant
+aitools sim msfs stop
+```
+
+The game simulation assistant:
+- Connects to game data (from MSFS, or dummy data for testing)
+- Listens for voice commands through your microphone
+- Processes your requests with AI using the real-time game data
+- Responds with spoken answers about the game state
+
+#### Advanced Simulation Features
+
+The game assistant includes several advanced features:
+
+- **Real-time Data Monitoring**: Continuously collects game data every second, even when you're not speaking
+- **Automatic Warning Alerts**: Proactively announces critical warnings through voice alerts (e.g., stall warnings, low fuel)
+- **Historical Data Analysis**: Tracks trends and changes in important metrics (altitude, airspeed)
+- **Knowledge Integration**: Stores game data in vector database for AI context enhancement
+- **Game-specific Expertise**: Each game module provides specialized knowledge and terminology to the AI
+- **Prioritized Warnings**: Critical warnings have shorter cooldowns and higher priorities
+
+For Microsoft Flight Simulator, specific warnings include:
+- Stall warnings (dangerous low airspeed)
+- Overspeed warnings (excessive airspeed)
+- Engine and fuel alerts
+- System failures (electrical, hydraulic, avionics)
+
+To exit the simulation assistant, simply say "exit" or press Ctrl+C.
+
+Currently supported games:
+- Microsoft Flight Simulator (msfs)
+- Dummy simulator for testing (dummy)
+
 ### Install Shell Integration
 
 Install the shell integration script for terminal capabilities:

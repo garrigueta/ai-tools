@@ -1,40 +1,50 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+"""
+Command execution utility module.
+Provides functionality to run shell commands and capture their output.
+"""
 import subprocess
-
-app = FastAPI()
-
-
-class CommandRequest(BaseModel):
-    """ Command Request """
-    command: str
+from dataclasses import dataclass
+from typing import Optional
 
 
-class CommandResponse(BaseModel):
-    """ Command Response """
+@dataclass
+class CommandResult:
+    """Result of a command execution"""
     stdout: str
     stderr: str
     exit_code: int
 
 
-@app.post("/run", response_model=CommandResponse)
-def run_command(cmd: CommandRequest):
-    """ Run Command """
+def run_command(command: str, timeout: int = 10) -> CommandResult:
+    """
+    Execute a shell command and return its output.
+    
+    Args:
+        command: The shell command to execute
+        timeout: Maximum time to wait for the command to complete (seconds)
+        
+    Returns:
+        CommandResult object containing stdout, stderr and exit code
+        
+    Raises:
+        TimeoutError: If the command execution times out
+        RuntimeError: If another exception occurs during execution
+    """
     try:
         result = subprocess.run(
-            cmd.command,
+            command,
             shell=True,
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=timeout,
             check=False
         )
-        return CommandResponse(
+        return CommandResult(
             stdout=result.stdout,
             stderr=result.stderr,
             exit_code=result.returncode
         )
-    except subprocess.TimeoutExpired as exc:
-        raise HTTPException(status_code=408, detail="Command timed out") from exc
+    except subprocess.TimeoutExpired:
+        raise TimeoutError(f"Command timed out after {timeout} seconds: {command}")
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise RuntimeError(f"Error executing command: {str(exc)}")

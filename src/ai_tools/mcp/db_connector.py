@@ -13,6 +13,54 @@ from ai_tools.config.database import db_config
 # Initialize a chat history manager
 chat_history_manager = ChatHistoryManager()
 
+# Store the vector_db instance
+_vector_db_instance = None
+
+def get_vector_db():
+    """
+    Get or initialize the vector database instance.
+    
+    Returns:
+        The initialized vector database or None if initialization fails
+    """
+    global _vector_db_instance
+    
+    if _vector_db_instance is not None:
+        return _vector_db_instance
+        
+    try:
+        # Load the vector database using the configuration
+        vector_config = db_config.get_vector_db_config()
+        db_name = os.getenv("DEFAULT_VECTOR_DB", "default")
+        
+        # Initialize the vector database
+        _vector_db_instance = load_vector_db(db_name)
+        
+        # Set initialized flag based on whether loading was successful
+        if _vector_db_instance:
+            _vector_db_instance.initialized = True
+        else:
+            # Create a simple placeholder for testing
+            from types import SimpleNamespace
+            _vector_db_instance = SimpleNamespace(
+                initialized=False,
+                search=lambda query, limit=3: [],
+                add_text=lambda text, metadata=None, db_name=None: None
+            )
+            print("Warning: Using placeholder vector DB - search functionality will be limited")
+            
+        return _vector_db_instance
+    except Exception as e:
+        print(f"Error initializing vector database: {str(e)}")
+        # Return a placeholder object with minimal functionality for testing
+        from types import SimpleNamespace
+        _vector_db_instance = SimpleNamespace(
+            initialized=False,
+            search=lambda query, limit=3: [],
+            add_text=lambda text, metadata=None, db_name=None: None
+        )
+        return _vector_db_instance
+
 def mcp_vectorize_documents(directory_path: str, db_name: str = "default") -> Dict[str, Any]:
     """
     MCP action to vectorize documents from a directory

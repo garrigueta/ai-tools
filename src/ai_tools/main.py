@@ -7,6 +7,11 @@ import os
 import sys
 import argparse
 import logging
+import signal
+import psutil
+import json
+import tempfile
+from pathlib import Path
 from ai_tools.mcp.actions import (
     get_ollama_url,
     get_ollama_model,
@@ -18,6 +23,10 @@ from ai_tools.mcp.actions import (
 from ai_tools.config.database import db_config
 from ai_tools.modules.speech import SpeechToText
 from ai_tools.modules.shell_tools import install_shell_integration_command
+from ai_tools.modules.sim import GameSimAi
+
+# Path to store information about running sim processes
+SIM_PROCESS_INFO_FILE = os.path.join(tempfile.gettempdir(), "aitools_sim_processes.json")
 
 # Special handling for error analysis mode to completely suppress help output
 if len(sys.argv) > 1 and sys.argv[1] == "error":
@@ -123,6 +132,113 @@ def handle_speak_command(args):
     speech_engine.speech(output)
     print("Done speaking.")
 
+def handle_sim_command(args):
+    """Handle the 'sim' command for game simulator data ingestion"""
+    game_type = args.game_type
+    action = args.action
+    
+    if action == "start":
+        print(f"Starting {game_type} data ingestion...")
+        try:
+            # Check if there's already a process running for this game
+            running_processes = _get_sim_processes()
+            if game_type in running_processes and _is_process_running(running_processes[game_type]):
+                print(f"A {game_type} simulator process is already running (PID: {running_processes[game_type]})")
+                print(f"Use 'aitools sim {game_type} stop' to stop it first")
+                return
+
+            # Fork a new process for the game simulator
+            pid = os.fork()
+            if pid == 0:  # Child process
+                try:
+                    # Initialize the game simulator with the specified game type
+                    game_sim = GameSimAi(game_type=game_type)
+                    # Start the game simulator
+                    game_sim.start()
+                    sys.exit(0)
+                except Exception as e:
+                    print(f"Error in child process: {str(e)}")
+                    sys.exit(1)
+            else:  # Parent process
+                print(f"Started {game_type} simulator process with PID: {pid}")
+                # Save the process information
+                _save_sim_process(game_type, pid)
+        except NotImplementedError as e:
+            print(f"Error: {str(e)}")
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+        except Exception as e:
+            print(f"Unexpected error starting {game_type} simulator: {str(e)}")
+    elif action == "stop":
+        print(f"Stopping {game_type} simulator process...")
+        running_processes = _get_sim_processes()
+        
+        if game_type not in running_processes:
+            print(f"No running {game_type} simulator process found")
+            return
+        
+        pid = running_processes[game_type]
+        if _is_process_running(pid):
+            try:
+                os.kill(pid, signal.SIGTERM)
+                print(f"Sent termination signal to {game_type} simulator process (PID: {pid})")
+                # Remove the process information
+                _remove_sim_process(game_type)
+            except Exception as e:
+                print(f"Error stopping process: {str(e)}")
+        else:
+            print(f"Process with PID {pid} is no longer running")
+            # Clean up stale process information
+            _remove_sim_process(game_type)
+    else:
+        print(f"Unknown action '{action}' for sim command. Available actions: start, stop")
+
+def _get_sim_processes():
+    """Get information about running sim processes"""
+    if not os.path.exists(SIM_PROCESS_INFO_FILE):
+        return {}
+    
+    try:
+        with open(SIM_PROCESS_INFO_FILE, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def _save_sim_process(game_type, pid):
+    """Save information about a running sim process"""
+    processes = _get_sim_processes()
+    processes[game_type] = pid
+    
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(SIM_PROCESS_INFO_FILE), exist_ok=True)
+    
+    try:
+        with open(SIM_PROCESS_INFO_FILE, 'w') as f:
+            json.dump(processes, f)
+    except IOError as e:
+        print(f"Warning: Could not save process information: {str(e)}")
+
+def _remove_sim_process(game_type):
+    """Remove information about a sim process"""
+    processes = _get_sim_processes()
+    if game_type in processes:
+        del processes[game_type]
+    
+    try:
+        with open(SIM_PROCESS_INFO_FILE, 'w') as f:
+            json.dump(processes, f)
+    except IOError as e:
+        print(f"Warning: Could not update process information: {str(e)}")
+
+def _is_process_running(pid):
+    """Check if a process with the given PID is running"""
+    try:
+        # Check if the process exists and is not a zombie
+        process = psutil.Process(pid)
+        return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return False
+
 def parse_args(argv=None):
     """Parse and return command line arguments"""
     # Create parser with add_help=False to suppress automatic help/usage messages
@@ -174,6 +290,12 @@ def parse_args(argv=None):
     shell_parser = subparsers.add_parser("install-shell", help="Install shell integration for terminal capabilities")
     shell_parser.add_argument("--auto", action="store_true", help="Automatically add source command to shell config")
     
+    # Sim command parser
+    sim_parser = subparsers.add_parser("sim", help="Start in-game data ingestion and voice assistant")
+    sim_parser.add_argument("game_type", choices=['msfs', 'iracing', 'dummy'], default='dummy', nargs='?', 
+                          help="Type of game simulator (default: dummy)")
+    sim_parser.add_argument("action", choices=['start', 'stop'], help="Action to perform")
+    
     # Parse arguments
     return parser.parse_args(argv)
 
@@ -221,6 +343,8 @@ def main(argv=None):
         handle_speak_command(args)
     elif args.command == "install-shell":
         install_shell_integration_command()
+    elif args.command == "sim":
+        handle_sim_command(args)
     else:
         # Create parser object for print_help()
         parser = argparse.ArgumentParser(

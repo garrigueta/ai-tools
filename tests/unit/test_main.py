@@ -3,7 +3,8 @@ import os
 import sys
 import logging
 import pytest
-from unittest.mock import patch, MagicMock, call
+import psutil
+from unittest.mock import patch, MagicMock, call, mock_open
 from io import StringIO
 
 from ai_tools.main import (
@@ -15,7 +16,12 @@ from ai_tools.main import (
     handle_load_command,
     handle_speak_command,
     print_environment_info,
-    install_shell_integration_command
+    install_shell_integration_command,
+    handle_sim_command,
+    _get_sim_processes,
+    _save_sim_process,
+    _remove_sim_process,
+    _is_process_running
 )
 
 
@@ -501,6 +507,24 @@ def test_handle_speak_command(mock_db_config, mock_speech, mock_prompt, capsys):
     assert "Speaking response..." in captured.out
 
 
+@patch('ai_tools.main.argparse.ArgumentParser.parse_args')
+@patch('ai_tools.main.handle_sim_command')
+def test_main_sim_command(mock_handle_sim, mock_parse_args, argv_backup):
+    """Test the main function with sim command."""
+    # Setup mock args
+    mock_args = MagicMock()
+    mock_args.command = "sim"
+    mock_args.verbose = False
+    mock_args.config = None
+    mock_parse_args.return_value = mock_args
+    
+    # Call main function
+    main()
+    
+    # Verify handle_sim_command was called
+    mock_handle_sim.assert_called_once_with(mock_args)
+
+
 def test_parse_args_default():
     """Test parse_args with default arguments."""
     args = parse_args([])
@@ -613,3 +637,244 @@ def test_parse_args_install_shell_command_auto():
     
     assert args.command == 'install-shell'
     assert args.auto is True
+
+
+def test_parse_args_sim_command():
+    """Test parse_args with 'sim' command."""
+    args = parse_args(['sim', 'msfs', 'start'])
+    
+    assert args.command == 'sim'
+    assert args.game_type == 'msfs'
+    assert args.action == 'start'
+    
+    # Test with default game_type (dummy)
+    args = parse_args(['sim', 'start'])
+    
+    assert args.command == 'sim'
+    assert args.game_type == 'dummy'
+    assert args.action == 'start'
+    
+    # Test stop action
+    args = parse_args(['sim', 'msfs', 'stop'])
+    
+    assert args.command == 'sim'
+    assert args.game_type == 'msfs'
+    assert args.action == 'stop'
+
+
+@patch('ai_tools.main._get_sim_processes')
+@patch('ai_tools.main._is_process_running')
+@patch('os.fork')
+@patch('ai_tools.main._save_sim_process')
+def test_handle_sim_command_start_new_process(mock_save_process, mock_fork, 
+                                             mock_is_running, mock_get_processes, capsys):
+    """Test handle_sim_command starting a new process."""
+    # Setup mocks
+    mock_get_processes.return_value = {}
+    mock_fork.return_value = 12345  # Parent process gets PID
+    
+    # Create mock args
+    args = MagicMock()
+    args.game_type = 'dummy'
+    args.action = 'start'
+    
+    handle_sim_command(args)
+    
+    # Verify process handling
+    mock_get_processes.assert_called_once()
+    mock_fork.assert_called_once()
+    mock_save_process.assert_called_once_with('dummy', 12345)
+    
+    # Check output
+    captured = capsys.readouterr()
+    assert "Starting dummy data ingestion..." in captured.out
+    assert "Started dummy simulator process with PID: 12345" in captured.out
+
+
+@patch('ai_tools.main._get_sim_processes')
+@patch('ai_tools.main._is_process_running')
+def test_handle_sim_command_start_already_running(mock_is_running, mock_get_processes, capsys):
+    """Test handle_sim_command when process is already running."""
+    # Setup mocks
+    mock_get_processes.return_value = {'msfs': 12345}
+    mock_is_running.return_value = True
+    
+    # Create mock args
+    args = MagicMock()
+    args.game_type = 'msfs'
+    args.action = 'start'
+    
+    handle_sim_command(args)
+    
+    # Verify process handling
+    mock_get_processes.assert_called_once()
+    mock_is_running.assert_called_once_with(12345)
+    
+    # Check output
+    captured = capsys.readouterr()
+    assert "Starting msfs data ingestion..." in captured.out
+    assert "A msfs simulator process is already running (PID: 12345)" in captured.out
+    assert "Use 'aitools sim msfs stop' to stop it first" in captured.out
+
+
+@patch('ai_tools.main._get_sim_processes')
+@patch('ai_tools.main._is_process_running')
+@patch('os.kill')
+@patch('ai_tools.main._remove_sim_process')
+def test_handle_sim_command_stop_running_process(mock_remove_process, mock_kill,
+                                               mock_is_running, mock_get_processes, capsys):
+    """Test handle_sim_command stopping a running process."""
+    # Setup mocks
+    mock_get_processes.return_value = {'msfs': 12345}
+    mock_is_running.return_value = True
+    
+    # Create mock args
+    args = MagicMock()
+    args.game_type = 'msfs'
+    args.action = 'stop'
+    
+    handle_sim_command(args)
+    
+    # Verify process handling
+    mock_get_processes.assert_called_once()
+    mock_is_running.assert_called_once_with(12345)
+    mock_kill.assert_called_once()
+    mock_remove_process.assert_called_once_with('msfs')
+    
+    # Check output
+    captured = capsys.readouterr()
+    assert "Stopping msfs simulator process..." in captured.out
+    assert "Sent termination signal to msfs simulator process (PID: 12345)" in captured.out
+
+
+@patch('ai_tools.main._get_sim_processes')
+def test_handle_sim_command_stop_no_process(mock_get_processes, capsys):
+    """Test handle_sim_command when no process is running."""
+    # Setup mocks
+    mock_get_processes.return_value = {}
+    
+    # Create mock args
+    args = MagicMock()
+    args.game_type = 'dummy'
+    args.action = 'stop'
+    
+    handle_sim_command(args)
+    
+    # Verify process handling
+    mock_get_processes.assert_called_once()
+    
+    # Check output
+    captured = capsys.readouterr()
+    assert "Stopping dummy simulator process..." in captured.out
+    assert "No running dummy simulator process found" in captured.out
+
+
+@patch('ai_tools.main._get_sim_processes')
+@patch('ai_tools.main._is_process_running')
+@patch('ai_tools.main._remove_sim_process')
+def test_handle_sim_command_stop_stale_process(mock_remove_process, mock_is_running, 
+                                             mock_get_processes, capsys):
+    """Test handle_sim_command stopping a stale process."""
+    # Setup mocks
+    mock_get_processes.return_value = {'dummy': 12345}
+    mock_is_running.return_value = False
+    
+    # Create mock args
+    args = MagicMock()
+    args.game_type = 'dummy'
+    args.action = 'stop'
+    
+    handle_sim_command(args)
+    
+    # Verify process handling
+    mock_get_processes.assert_called_once()
+    mock_is_running.assert_called_once_with(12345)
+    mock_remove_process.assert_called_once_with('dummy')
+    
+    # Check output
+    captured = capsys.readouterr()
+    assert "Stopping dummy simulator process..." in captured.out
+    assert "Process with PID 12345 is no longer running" in captured.out
+
+
+@patch('os.path.exists')
+@patch('builtins.open', new_callable=mock_open, read_data='{"msfs": 12345}')
+def test_get_sim_processes_existing_file(mock_file, mock_exists):
+    """Test _get_sim_processes with existing file."""
+    mock_exists.return_value = True
+    
+    result = _get_sim_processes()
+    
+    assert result == {"msfs": 12345}
+    mock_exists.assert_called_once()
+    mock_file.assert_called_once()
+
+
+@patch('os.path.exists')
+def test_get_sim_processes_no_file(mock_exists):
+    """Test _get_sim_processes with no file."""
+    mock_exists.return_value = False
+    
+    result = _get_sim_processes()
+    
+    assert result == {}
+    mock_exists.assert_called_once()
+
+
+@patch('os.makedirs')
+@patch('builtins.open', new_callable=mock_open)
+@patch('json.dump')
+@patch('ai_tools.main._get_sim_processes')
+def test_save_sim_process(mock_get_processes, mock_json_dump, mock_file, mock_makedirs):
+    """Test _save_sim_process function."""
+    # Setup mock
+    mock_get_processes.return_value = {"msfs": 12345}
+    
+    _save_sim_process("dummy", 54321)
+    
+    # Verify the function behavior
+    mock_get_processes.assert_called_once()
+    mock_makedirs.assert_called_once()
+    mock_file.assert_called_once()
+    mock_json_dump.assert_called_once_with({"msfs": 12345, "dummy": 54321}, mock_file())
+
+
+@patch('builtins.open', new_callable=mock_open)
+@patch('json.dump')
+@patch('ai_tools.main._get_sim_processes')
+def test_remove_sim_process(mock_get_processes, mock_json_dump, mock_file):
+    """Test _remove_sim_process function."""
+    # Setup mock
+    mock_get_processes.return_value = {"msfs": 12345, "dummy": 54321}
+    
+    _remove_sim_process("msfs")
+    
+    # Verify the function behavior
+    mock_get_processes.assert_called_once()
+    mock_file.assert_called_once()
+    mock_json_dump.assert_called_once_with({"dummy": 54321}, mock_file())
+
+
+@patch('psutil.Process')
+def test_is_process_running_true(mock_process):
+    """Test _is_process_running when process is running."""
+    # Setup mock
+    process_instance = MagicMock()
+    process_instance.is_running.return_value = True
+    process_instance.status.return_value = "running"
+    mock_process.return_value = process_instance
+    
+    result = _is_process_running(12345)
+    
+    assert result is True
+    mock_process.assert_called_once_with(12345)
+    process_instance.is_running.assert_called_once()
+
+
+@patch('psutil.Process', side_effect=psutil.NoSuchProcess(12345))
+def test_is_process_running_no_process(mock_process):
+    """Test _is_process_running when process doesn't exist."""
+    result = _is_process_running(12345)
+    
+    assert result is False
+    mock_process.assert_called_once_with(12345)

@@ -5,7 +5,7 @@ import datetime
 class MCPMessage:
     def __init__(self, role, content, context=None, msg_id=None, timestamp=None):
         self.id = msg_id or str(uuid.uuid4())
-        self.timestamp = timestamp or datetime.datetime.utcnow().isoformat()
+        self.timestamp = timestamp or datetime.datetime.now(datetime.UTC).isoformat()
         self.role = role  # e.g., "user", "assistant", "system"
         self.content = content
         self.context = context or {}
