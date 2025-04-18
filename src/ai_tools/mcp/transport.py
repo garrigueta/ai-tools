@@ -1,11 +1,13 @@
 import json
 import uuid
 import datetime
+from datetime import timezone  # Import timezone for backward compatibility
 
 class MCPMessage:
     def __init__(self, role, content, context=None, msg_id=None, timestamp=None):
         self.id = msg_id or str(uuid.uuid4())
-        self.timestamp = timestamp or datetime.datetime.now(datetime.UTC).isoformat()
+        # Use timezone.utc instead of datetime.UTC for Python 3.10 compatibility
+        self.timestamp = timestamp or datetime.datetime.now(timezone.utc).isoformat()
         self.role = role  # e.g., "user", "assistant", "system"
         self.content = content
         self.context = context or {}
