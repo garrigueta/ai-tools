@@ -594,7 +594,7 @@ def mcp_get_recent_conversations(max_sessions: int = 3, max_messages_per_session
         }
 
 
-def mcp_get_document_metadata(db_name: str = None) -> Dict[str, Any]:
+def mcp_get_document_metadata(db_name: Optional[str] = None) -> Dict[str, Any]:
     """
     MCP action to retrieve metadata about available documents without exposing
     their full content, helping the AI understand what knowledge is available.

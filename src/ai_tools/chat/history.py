@@ -1,7 +1,7 @@
 import os
 import json
 import datetime
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Dict, Tuple, Optional, Any, Collection, Union
 from pathlib import Path
 
 # Import the unified database configuration
@@ -21,7 +21,7 @@ class ChatHistoryManager:
     Manages storage and retrieval of chat history
     """
     
-    def __init__(self, history_dir: str = None):
+    def __init__(self, history_dir: Optional[str] = None):
         """
         Initialize the chat history manager
         
@@ -34,7 +34,8 @@ class ChatHistoryManager:
         if not using_external_db():
             os.makedirs(self.history_dir, exist_ok=True)
             
-        self.current_history: List[Dict[str, str]] = []
+        # Fix the type annotation to handle complex message structures
+        self.current_history: List[Dict[str, Union[str, Dict[str, Any]]]] = []
         self.session_id: Optional[str] = None
         
         # Set up external DB connection if enabled
@@ -44,7 +45,7 @@ class ChatHistoryManager:
             print(f"Using external chat history database at {history_config['host']}:{history_config['port']}")
             # In a real implementation, you would establish a database connection here
     
-    def start_new_session(self, session_id: str = None) -> str:
+    def start_new_session(self, session_id: Optional[str] = None) -> str:
         """
         Start a new chat session
         
@@ -77,7 +78,7 @@ class ChatHistoryManager:
         
         return self.session_id
     
-    def add_message(self, role: str, content: str, context: Dict[str, Any] = None) -> int:
+    def add_message(self, role: str, content: str, context: Optional[Dict[str, Any]] = None) -> int:
         """
         Add a message to the current chat history
         
@@ -107,7 +108,7 @@ class ChatHistoryManager:
         
         return len(self.current_history) - 1
     
-    def get_messages(self, start_idx: int = 0, end_idx: int = None) -> List[Dict[str, Any]]:
+    def get_messages(self, start_idx: int = 0, end_idx: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Get messages from the current history
         

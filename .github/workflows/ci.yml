@@ -62,6 +62,8 @@ jobs:
     - name: Check types with mypy
       run: |
         poetry run pip install mypy
+        # Install missing type stubs
+        poetry run pip install types-requests types-psutil
         poetry run mypy src
       continue-on-error: true  # Don't fail the build yet - we'll add type hints over time
     

@@ -100,7 +100,7 @@ def run_command(command):
         return f"Unexpected error: {str(e)}"
 
 
-def run_ai_command(natural_prompt):
+def run_ai_command(natural_prompt: str) -> tuple[str, str]:
     """ List the files in the current directory """
     np_command = ask_llm_for_command(natural_prompt)
     print(f"🛠️  LLM Command: {np_command}")
@@ -110,13 +110,16 @@ def run_ai_command(natural_prompt):
     return np_command, np_output
 
 
-def prompt_ollama_http(prompt: str, use_streaming=True, verbose=False):
+def prompt_ollama_http(prompt: str, use_streaming: bool = True, verbose: bool = False) -> str:
     """ Send a prompt to the local Ollama server and get the response 
     
     Args:
         prompt: The prompt to send to Ollama
         use_streaming: Whether to use streaming mode (default: True)
         verbose: Whether to print debug information (default: False)
+        
+    Returns:
+        The response string from the Ollama server
     """
     try:
         # Log the request details for debugging

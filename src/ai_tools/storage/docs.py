@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+from typing import List, Dict, Tuple, Optional, Any, Union
 from pathlib import Path
 from langchain_community.document_loaders import TextLoader, DirectoryLoader, PyPDFLoader
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -15,7 +16,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # Import the unified database configuration
 from ai_tools.config.database import db_config
 
-CHAT_HISTORY = []
+# Add type annotation for CHAT_HISTORY
+CHAT_HISTORY: List[Tuple[str, str]] = []
 RET_CHAIN = None
 
 # Use the unified database configuration
