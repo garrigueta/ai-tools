@@ -58,6 +58,10 @@ See [INSTALL.md](INSTALL.md) for more detailed installation options and troubles
 - Python 3.10+
 - Ollama installed locally with a model configured
 - Audio playback support for the `speak` command (Linux: ffplay, mpg123, mpg321, or mplayer)
+- Operating Systems: 
+  - Linux (fully supported)
+  - macOS (supported with some limitations)
+  - Windows (limited support, use WSL for best results)
 
 ## Environment Setup
 
@@ -103,6 +107,15 @@ Generates and executes a command based on natural language input:
 aitools run "list all text files in the current directory"
 ```
 
+Example output:
+```
+🔍 Translating command...
+💡 Running: find . -type f -name "*.txt"
+./notes.txt
+./config.txt
+./data/sample.txt
+```
+
 ### Send a Direct Prompt to Ollama
 
 Send a direct prompt to the Ollama model and get a response:
@@ -125,6 +138,19 @@ Analyze and explain an error message from a command:
 
 ```bash
 aitools error "npm install" "Error: ENOENT: no such file or directory, open 'package.json'"
+```
+
+Example output:
+```
+🔍 Analyzing error...
+💡 The error suggests you're trying to run npm install without a package.json file in the current directory.
+
+To fix this:
+1. Make sure you're in the correct project directory
+2. Create a package.json file first using: npm init
+3. Then try running npm install again
+
+If you're trying to install a specific package, use: npm install <package-name>
 ```
 
 ### Load Documents into Knowledge Base
@@ -197,6 +223,16 @@ Display the current Ollama configuration:
 aitools info
 ```
 
+Example output:
+```
+🛠️  AI-Tools Configuration:
+📡 Ollama connection: localhost:11434
+🧠 Model: gemma3:27b
+🗃️  Database: PostgreSQL at localhost:5432/ai_tools_db
+🔍 Vector database: Enabled
+📝 History tracking: Enabled
+```
+
 ### Help
 
 Get help on available commands:
@@ -260,6 +296,37 @@ src/                 # Source code directory
       docs.py        # Document vectorization and retrieval
 ```
 
+## Testing
+
+To run the test suite and verify that everything is working correctly:
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=ai_tools
+
+# Run a specific test file
+pytest tests/unit/modules/test_sim.py
+```
+
+The project includes comprehensive unit tests for all major components. If you're contributing new features, please add appropriate tests to maintain code quality.
+
+## Contributing
+
+Contributions are welcome! To contribute to ai-tools:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run the tests to ensure everything works (`pytest`)
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+Please ensure your code follows the project's coding style and includes appropriate tests.
+
 ## Advanced Configuration
 
 The application uses environment variables for configuration. Here's a comprehensive list of all available environment variables:
@@ -308,4 +375,4 @@ You can set these variables in your shell or create a `.env` file in your projec
 
 ## License
 
-[Your License Information]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
