@@ -16,7 +16,9 @@ class TestDummyGameWrapper:
         
         assert dummy_game.running is False
         assert isinstance(dummy_game.data, dict)
-        assert isinstance(dummy_game.data_lock, threading.Lock)
+        # Fix: Check if it has the lock attributes instead of using isinstance
+        assert hasattr(dummy_game.data_lock, 'acquire')
+        assert hasattr(dummy_game.data_lock, 'release')
 
     def test_fetch_game_data(self):
         """Test fetch_game_data method."""

@@ -31,7 +31,9 @@ class TestMSFSWrapper:
         assert msfs.events == mock_events_instance
         assert msfs.running is False
         assert isinstance(msfs.data, dict)
-        assert isinstance(msfs.data_lock, threading.Lock)
+        # Fix: Check if it has the lock attributes instead of using isinstance
+        assert hasattr(msfs.data_lock, 'acquire')
+        assert hasattr(msfs.data_lock, 'release')
         
         # Verify SimConnect API was initialized correctly
         mock_simconnect.assert_called_once()
