@@ -15,7 +15,7 @@ jobs:
         python-version: ['3.11', '3.12']  # Removed 3.13 as it might not be fully supported yet
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -100,7 +100,7 @@ jobs:
             platform: macos
             
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -152,7 +152,7 @@ jobs:
         poetry run python build_binary.py --platform=${{ matrix.platform }}
     
     - name: Upload binary artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: aitools-${{ matrix.platform }}
         path: |
