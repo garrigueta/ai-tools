@@ -53,6 +53,10 @@ This guide explains how to install the `ai-tools` package and set up all require
    aitools prompt "Hello, how can you help me today?"
    ```
 
+### Method 3: Binary Installation
+
+For using the pre-built binary packages without needing to install Python or other dependencies, see the [Binary Installation Guide](binary_installation.md).
+
 ## Ollama Setup
 
 The AI-Tools package requires a running Ollama server with a compatible model:
@@ -64,6 +68,9 @@ The AI-Tools package requires a running Ollama server with a compatible model:
 
    # On macOS
    brew install ollama
+   
+   # On Windows
+   # Download and install from https://ollama.com/download/windows
    ```
 
 2. Pull a recommended model:
@@ -111,7 +118,7 @@ brew install mpg123
 ```
 
 ### On Windows:
-For Windows users, it's recommended to use Windows Subsystem for Linux (WSL) and follow the Linux installation steps.
+For Windows users, it's recommended to use Windows Subsystem for Linux (WSL) and follow the Linux installation steps, or use the binary package with PowerShell integration.
 
 ## PostgreSQL Database Setup (Optional)
 
@@ -124,6 +131,9 @@ For advanced features like document vector storage and chat history, you'll need
 
    # On macOS
    brew install postgresql
+   
+   # On Windows
+   # Download and install from https://www.postgresql.org/download/windows/
    ```
 
 2. Create a database for AI-Tools:
@@ -131,6 +141,7 @@ For advanced features like document vector storage and chat history, you'll need
    # Start PostgreSQL service if not already running
    sudo service postgresql start   # Linux
    brew services start postgresql  # macOS
+   # On Windows, PostgreSQL should run as a service after installation
 
    # Create the database
    sudo -u postgres psql -c "CREATE DATABASE ai_tools_db;"
@@ -140,12 +151,21 @@ For advanced features like document vector storage and chat history, you'll need
 
 3. Configure AI-Tools to use your database by setting environment variables:
    ```bash
+   # Linux/macOS
    export OLLAMA_DB_ENABLED=true
    export OLLAMA_DB_HOST=localhost
    export OLLAMA_DB_PORT=5432
    export OLLAMA_DB_USER=aitools
    export OLLAMA_DB_PASSWORD=your_password
    export OLLAMA_DB_NAME=ai_tools_db
+   
+   # Windows (PowerShell)
+   $env:OLLAMA_DB_ENABLED="true"
+   $env:OLLAMA_DB_HOST="localhost"
+   $env:OLLAMA_DB_PORT="5432"
+   $env:OLLAMA_DB_USER="aitools"
+   $env:OLLAMA_DB_PASSWORD="your_password"
+   $env:OLLAMA_DB_NAME="ai_tools_db"
    ```
 
 ## Microsoft Flight Simulator Integration (Optional)
@@ -191,7 +211,7 @@ export OLLAMA_DB_NAME=ai_tools_db
 export SIMULATION_TYPE=msfs  # or 'dummy' for testing
 ```
 
-For a complete list of all configuration options, see the [Advanced Configuration](README.md#advanced-configuration) section in the README.
+For a complete list of all configuration options, see the [Advanced Configuration](user_guide.md#advanced-configuration) section in the User Guide.
 
 ## Shell Integration
 
@@ -207,6 +227,8 @@ This will:
 3. Inform you when the integration is complete
 
 You'll need to restart your terminal or run `source ~/.bashrc` (or equivalent) to activate the integration.
+
+On Windows, when using the binary package, follow the [Windows installation instructions](binary_installation.md#windows-installation) for PowerShell integration.
 
 ## Troubleshooting
 
@@ -259,7 +281,7 @@ For advanced troubleshooting:
 2. Check logs for specific components:
    ```bash
    # Run with debug output
-   PYTHONPATH=/home/dino/git/ai-tools python -m ai_tools.modules.sim --debug
+   PYTHONPATH=/path/to/ai-tools python -m ai_tools.modules.sim --debug
    ```
 
 ## Updating AI-Tools
@@ -273,3 +295,5 @@ poetry install  # If using Poetry
 # or
 pip install -e .  # If using pip
 ```
+
+If you're using the binary package, download the latest binary release or rebuild it following the [binary building instructions](binary_installation.md#building-the-binary).
