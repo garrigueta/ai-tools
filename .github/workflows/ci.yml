@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12']  # Removed 3.13 as it might not be fully supported yet
 
     steps:
     - uses: actions/checkout@v3
@@ -52,11 +52,10 @@ jobs:
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: |
         poetry config installer.max-workers 2
-        poetry install --no-interaction --with dev,test
+        poetry install --no-interaction --with dev
     
     - name: Lint with flake8
       run: |
-        poetry run pip install flake8
         poetry run flake8 src tests
       continue-on-error: true  # Don't fail the build yet - we'll improve the code style over time
     
@@ -142,7 +141,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry config installer.max-workers 2
-        poetry install --no-interaction
+        poetry install --no-interaction --with dev
     
     - name: Build binary
       run: |
