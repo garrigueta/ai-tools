@@ -173,3 +173,6 @@ cython_debug/
 vosk/*
 !vosk/info.txt
 embeddings.db
+
+# Runner data
+runner_data/*
