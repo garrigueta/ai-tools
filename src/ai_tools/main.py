@@ -254,8 +254,6 @@ def parse_args(argv=None):
     # Global arguments
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('--config', help='Path to configuration file')
-    parser.add_argument('--mode', choices=['shell', 'api', 'web'], default='shell',
-                      help='Runtime mode: shell, api, or web (not implemented)')
     
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
     
@@ -319,8 +317,6 @@ def main(argv=None):
         print(f"Note: Config file '{args.config}' specified but config loading is not implemented")
     
     if not args.command:
-        if args.mode != 'shell':
-            print(f"Note: Mode '{args.mode}' is not implemented")
         # Create parser object for print_help()
         parser = argparse.ArgumentParser(
             description="ai-tools Ollama interface for AI-powered command generation.",
