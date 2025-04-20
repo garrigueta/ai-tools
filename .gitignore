@@ -175,4 +175,4 @@ vosk/*
 embeddings.db
 
 # Runner data
-runner_data/*
+runner/runner-data/*
