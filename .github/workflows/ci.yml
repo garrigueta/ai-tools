@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint-and-test:
-    runs-on: ubuntu-latest
+    runs-on: linux-local
     strategy:
       matrix:
         python-version: ['3.11', '3.12']  # Removed 3.13 as it might not be fully supported yet
