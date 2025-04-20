@@ -1,6 +1,6 @@
 # AI-Tools
 
-AI Tools with Ollama LLM integration for OS assistance.
+AI Tools with Ollama LLM integration for OS assistance. This project is in active development and not finished.
 
 ## Overview
 
