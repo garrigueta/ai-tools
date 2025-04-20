@@ -43,6 +43,8 @@ Comprehensive documentation is available in the `docs` folder:
 - [Installation Guide](docs/installation_guide.md) - Detailed installation instructions
 - [User Guide](docs/user_guide.md) - How to use AI-Tools
 - [Binary Installation](docs/binary_installation.md) - Using pre-built binaries (no Python required)
+- [Shell Integration Guide](docs/shell_integration_guide.md) - Using the terminal error handler and shell features
+- [Game Module Development](docs/game_module_development.md) - Guide for developing game integration modules
 - [Development Guide](docs/development_guide.md) - Guide for contributors
 
 ## Basic Usage Examples
