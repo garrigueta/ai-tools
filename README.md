@@ -1,3 +1,5 @@
+[![CI](https://github.com/garrigueta/ai-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/garrigueta/ai-tools/actions/workflows/ci.yml)
+
 # AI-Tools
 
 AI Tools with Ollama LLM integration for OS assistance. This project is in active development and not finished.

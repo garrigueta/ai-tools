@@ -127,18 +127,17 @@ def test_main_with_non_shell_mode(mock_parse_args, argv_backup, capsys):
     """Test the main function with a non-shell mode."""
     # Setup mock args
     mock_args = MagicMock()
-    mock_args.command = None
+    mock_args.command = "unknown-mode"  # Using command attribute instead of mode
     mock_args.verbose = False
-    mock_args.mode = 'api'
     mock_args.config = None
     mock_parse_args.return_value = mock_args
     
     # Call main function
     main()
     
-    # Verify mode message was printed
+    # Verify help message was printed for unknown command
     captured = capsys.readouterr()
-    assert "Note: Mode 'api' is not implemented" in captured.out
+    assert "ai-tools Ollama interface for AI-powered command generation" in captured.out
 
 
 @patch('ai_tools.main.argparse.ArgumentParser.parse_args')
@@ -531,7 +530,7 @@ def test_parse_args_default():
     
     assert args.verbose is False
     assert args.config is None
-    assert args.mode == 'shell'
+    assert args.command is None
 
 
 def test_parse_args_verbose():
@@ -540,7 +539,7 @@ def test_parse_args_verbose():
     
     assert args.verbose is True
     assert args.config is None
-    assert args.mode == 'shell'
+    assert args.command is None
 
 
 def test_parse_args_config():
@@ -549,19 +548,22 @@ def test_parse_args_config():
     
     assert args.verbose is False
     assert args.config == 'test_config.yaml'
-    assert args.mode == 'shell'
+    assert args.command is None
 
 
 def test_parse_args_mode():
-    """Test parse_args with different modes."""
-    args = parse_args(['--mode', 'web'])
-    assert args.mode == 'web'
+    """Test parse_args with different subcommands."""
+    # Test with run command
+    args = parse_args(['run', 'list', 'files'])
+    assert args.command == 'run'
     
-    args = parse_args(['--mode', 'api'])
-    assert args.mode == 'api'
+    # Test with prompt command
+    args = parse_args(['prompt', 'hello'])
+    assert args.command == 'prompt'
     
-    args = parse_args(['--mode', 'shell'])
-    assert args.mode == 'shell'
+    # Test without command
+    args = parse_args([])
+    assert args.command is None
 
 
 def test_parse_args_invalid_mode():

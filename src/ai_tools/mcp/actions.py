@@ -40,7 +40,7 @@ def ask_llm_to_explain_error(command: str, error: str) -> str:
             raise KeyError(f"'response' key not found in API response: {response_json}")
         
         # Clean up any Markdown formatting that might remain
-        response_text = response_json['response'].strip()
+        response_text = str(response_json['response']).strip()  # Explicit str() cast to satisfy mypy
         response_text = response_text.replace("```", "")
         response_text = response_text.replace("`", "")
         
@@ -51,7 +51,7 @@ def ask_llm_to_explain_error(command: str, error: str) -> str:
         return f"Error: Failed to connect to the Ollama server. {str(e)}"
 
 
-def ask_llm_for_command(prompt):
+def ask_llm_for_command(prompt: str) -> str:
     """ Ask the local LLM to generate a safe terminal command """
     system_instruction = "Translate the following user request " \
                          "into a safe Linux terminal command. Only return " \
@@ -74,14 +74,14 @@ def ask_llm_for_command(prompt):
         response_json = response.json()
         if 'response' not in response_json:
             raise KeyError(f"'response' key not found in API response: {response_json}")
-        return response_json['response'].strip()
+        return str(response_json['response']).strip()  # Explicit str() cast to satisfy mypy
     except requests.exceptions.ReadTimeout:
         return "Error: The request to the Ollama server timed out."
     except requests.exceptions.RequestException as e:
         return f"Error: Failed to connect to the Ollama server. {str(e)}"
 
 
-def run_command(command):
+def run_command(command: str) -> str:
     """ Run the terminal command safely """
     try:
         # Skip execution for shell function syntax if detected
@@ -193,7 +193,8 @@ def prompt_ollama_http(prompt: str, use_streaming: bool = True, verbose: bool = 
             else:
                 print("\n")  # Just add a newline for better formatting
                 
-            return "" # Return empty since we already printed the response
+            # Return full_response instead of empty string to fix mypy error
+            return full_response if full_response else ""
         else:
             # Non-streaming approach (original method)
             response = requests.post(
@@ -209,9 +210,9 @@ def prompt_ollama_http(prompt: str, use_streaming: bool = True, verbose: bool = 
             response_json = response.json()
             if 'response' not in response_json:
                 raise KeyError(f"'response' key not found in API response: {response_json}")
-            return response_json['response'].strip()
+            return str(response_json['response']).strip()  # Explicit str() cast to satisfy mypy
     except requests.exceptions.ReadTimeout:
-        return "Error: The request to the Ollama server timed out. Try a simpler query or check your Ollama server configuration.\n\nTroubleshooting tips:\n1. Check if Ollama is running (curl {})\n2. Try a smaller model\n3. Check server resources\n4. Consider using the 'error' command which uses a different prompt format".format(get_ollama_url().replace('/api/generate', '/api/tags'))
+        return f"Error: The request to the Ollama server timed out. Try a simpler query or check your Ollama server configuration.\n\nTroubleshooting tips:\n1. Check if Ollama is running (curl {get_ollama_url().replace('/api/generate', '/api/tags')})\n2. Try a smaller model\n3. Check server resources\n4. Consider using the 'error' command which uses a different prompt format"
     except requests.exceptions.RequestException as e:
         return f"Error: Failed to connect to the Ollama server. {str(e)}"
 
@@ -304,24 +305,22 @@ def handle_mcp_action(action_name: str, params: Dict[str, Any]) -> Dict[str, Any
     
     try:
         action_function = MCP_ACTIONS[action_name]
-        # Use callable type to ensure mypy knows this is a function
-        from typing import Callable
-        if isinstance(action_function, Callable):  # Type guard for mypy
-            result = action_function(**params)
-            
-            # If the result is not a dictionary, wrap it
-            if not isinstance(result, dict):
-                result = {
-                    "status": "success",
-                    "result": result
-                }
-            
-            return result
-        else:
-            return {
-                "status": "error",
-                "message": f"Action {action_name} is not callable"
+        
+        # Call the function and get the result
+        # Use a type annotation to tell mypy this is callable
+        from typing import Callable, cast
+        callable_func = cast(Callable[..., Any], action_function)
+        result = callable_func(**params)
+        
+        # If the result is not a dictionary, wrap it
+        if not isinstance(result, dict):
+            result = {
+                "status": "success",
+                "result": result
             }
+        
+        # Explicitly cast to correct return type
+        return cast(Dict[str, Any], result)
     except Exception as e:
         return {
             "status": "error",

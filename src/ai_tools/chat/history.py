@@ -1,7 +1,7 @@
 import os
 import json
 import datetime
-from typing import List, Dict, Tuple, Optional, Any, Collection, Union
+from typing import List, Dict, Tuple, Optional, Any, Union, Collection, cast
 from pathlib import Path
 
 # Import the unified database configuration
@@ -135,9 +135,11 @@ class ChatHistoryManager:
         
         for message in self.current_history:
             if message["role"] == "user":
-                current_pair = [message["content"]]
+                # Cast content to the expected type to satisfy mypy
+                current_pair = [cast(Union[str, Dict[str, Any]], message["content"])]
             elif message["role"] == "assistant" and current_pair:
-                current_pair.append(message["content"])
+                # Cast content to the expected type to satisfy mypy
+                current_pair.append(cast(Union[str, Dict[str, Any]], message["content"]))
                 if len(current_pair) == 2:
                     formatted_history.append((current_pair[0], current_pair[1]))
                     current_pair = []
