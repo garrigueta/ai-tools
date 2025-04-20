@@ -282,7 +282,7 @@ def mcp_start_chat_session(session_id: Optional[str] = None) -> Dict[str, Any]:
             "message": f"Error starting chat session: {str(e)}"
         }
 
-def mcp_add_chat_message(role: str, content: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+def mcp_add_chat_message(role: str, content: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     MCP action to add a message to the current chat session
     
@@ -567,20 +567,23 @@ def mcp_get_recent_conversations(max_sessions: int = 3, max_messages_per_session
                 
             # Load the session temporarily
             temp_manager = ChatHistoryManager()
-            if temp_manager.load_session(session_id):
-                messages = temp_manager.get_messages()
-                
-                # Take most recent messages if over the limit
-                recent_messages = messages[-max_messages_per_session:] if len(messages) > max_messages_per_session else messages
-                
-                session_data.append({
-                    "session_id": session_id,
-                    "is_current": False,
-                    "messages": recent_messages,
-                    "message_count": len(recent_messages),
-                    "total_messages": len(messages),
-                    "created_at": session.get("created_at")
-                })
+            
+            # Ensure session_id is a string before passing to load_session
+            if session_id is not None:
+                if temp_manager.load_session(session_id):
+                    messages = temp_manager.get_messages()
+                    
+                    # Take most recent messages if over the limit
+                    recent_messages = messages[-max_messages_per_session:] if len(messages) > max_messages_per_session else messages
+                    
+                    session_data.append({
+                        "session_id": session_id,
+                        "is_current": False,
+                        "messages": recent_messages,
+                        "message_count": len(recent_messages),
+                        "total_messages": len(messages),
+                        "created_at": session.get("created_at")
+                    })
         
         return {
             "status": "success",

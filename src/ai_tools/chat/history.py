@@ -123,7 +123,7 @@ class ChatHistoryManager:
             return self.current_history[start_idx:]
         return self.current_history[start_idx:end_idx]
     
-    def get_formatted_history(self) -> List[Tuple[str, str]]:
+    def get_formatted_history(self) -> List[Tuple[Union[str, Dict[str, Any]], Union[str, Dict[str, Any]]]]:
         """
         Get the history in a format suitable for LangChain
         

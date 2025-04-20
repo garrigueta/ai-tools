@@ -5,17 +5,17 @@ import requests
 import json
 from typing import Dict, Any, Optional
 
-def get_ollama_url():
+def get_ollama_url() -> str:
     """Construct the Ollama API URL from environment variables"""
     host = os.getenv('OLLAMA_HOST', 'localhost')
     port = os.getenv('OLLAMA_PORT', '11434')
     return f"http://{host}:{port}/api/generate"
 
-def get_ollama_model():
+def get_ollama_model() -> str:
     """Get the Ollama model from environment variables"""
     return os.getenv('OLLAMA_MODEL', 'gemma3:27b')
 
-def ask_llm_to_explain_error(command, error):
+def ask_llm_to_explain_error(command: str, error: str) -> str:
     """ Ask the local LLM to explain an error """
     system_instruction = "Provide a very brief explanation of the following error message. " \
                          "Limit your response to 3-5 short lines total. " \
@@ -304,16 +304,24 @@ def handle_mcp_action(action_name: str, params: Dict[str, Any]) -> Dict[str, Any
     
     try:
         action_function = MCP_ACTIONS[action_name]
-        result = action_function(**params)
-        
-        # If the result is not a dictionary, wrap it
-        if not isinstance(result, dict):
-            result = {
-                "status": "success",
-                "result": result
+        # Use callable type to ensure mypy knows this is a function
+        from typing import Callable
+        if isinstance(action_function, Callable):  # Type guard for mypy
+            result = action_function(**params)
+            
+            # If the result is not a dictionary, wrap it
+            if not isinstance(result, dict):
+                result = {
+                    "status": "success",
+                    "result": result
+                }
+            
+            return result
+        else:
+            return {
+                "status": "error",
+                "message": f"Action {action_name} is not callable"
             }
-        
-        return result
     except Exception as e:
         return {
             "status": "error",
